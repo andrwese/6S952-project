@@ -4,11 +4,12 @@ This project aims to automate the process of object removal and scene restoratio
 ### to use:
 
 clone to your pc
+
 install segment anything:
-cd segment-anything; pip install -e .
 
-download model checkpoint: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-(not sure if it plays nicely with git / git lfs)
+```cd segment-anything; pip install -e .```
 
-Additionally you need pytorch and torchvision: https://pytorch.org/get-started/locally/
+download model checkpointgit reset --soft HEAD~2 https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+
+additionally you need pytorch and torchvision: https://pytorch.org/get-started/locally/
 

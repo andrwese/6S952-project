@@ -12,5 +12,6 @@ install segment anything:
 download model checkpoint https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 
 additionally you need pytorch and torchvision: https://pytorch.org/get-started/locally/
+
 ```pip3 install torch torchvision torchaudio```
 

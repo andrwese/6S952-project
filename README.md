@@ -9,7 +9,7 @@ install segment anything:
 
 ```cd segment-anything; pip install -e .```
 
-download model checkpointgit reset --soft HEAD~2 https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+download model checkpoint https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 
 additionally you need pytorch and torchvision: https://pytorch.org/get-started/locally/
 

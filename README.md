@@ -1,7 +1,7 @@
 # Code for project in Modeling with Machine Learning for CS
 This project aims to automate the process of object removal and scene restoration in a way that is both efficient and visually convincing to human observers. In digital image-editing, removing images and filling in the affected areas to maintain the scene’s visual continuity is a cumbersome task as it is time consuming and requires technical skills.
 
-### to use:
+### How to use SAM:
 
 clone to your pc:
 ```git clone https://github.com/facebookresearch/segment-anything.git```
@@ -14,7 +14,7 @@ download model checkpoint https://dl.fbaipublicfiles.com/segment_anything/sam_vi
 
 additionally you need pytorch, torchvision and opencv: https://pytorch.org/get-started/locally/
 
-```pip3 install torch torchvision torchaudio opencv-python```
+```pip3 install torch torchvision torchaudio opencv-python nbconvert```
 
 
 ### GAN-based generative inpainting

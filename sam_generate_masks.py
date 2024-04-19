@@ -5,7 +5,7 @@
 # 
 # Before running, make sure you followed the readme. 
 
-# In[1]:
+# In[3]:
 
 
 import numpy as np
@@ -18,7 +18,7 @@ import cv2
 
 # ### Functions for display purposes, showing masks, points or boxes
 
-# In[2]:
+# In[4]:
 
 
 def show_mask(mask, ax, random_color=False):
@@ -44,7 +44,7 @@ def show_box(box, ax):
 
 # ### Use sam predictor to get masks
 
-# In[3]:
+# In[5]:
 
 
 def get_masks_from_image(image, predictor):
@@ -90,7 +90,7 @@ def get_masks_from_image(image, predictor):
 # out: 
 # numpy image of mask
 
-# In[11]:
+# In[6]:
 
 
 def get_biggest_mask(masks, image, output_style="mask", mask_style="tight"):
@@ -127,7 +127,7 @@ def get_biggest_mask(masks, image, output_style="mask", mask_style="tight"):
 
 # ### Example usage
 
-# In[12]:
+# In[7]:
 
 
 from segment_anything import SamPredictor, sam_model_registry
@@ -135,15 +135,17 @@ from segment_anything import SamPredictor, sam_model_registry
 sam = sam_model_registry["default"](checkpoint="sam_vit_h_4b8939.pth")
 predictor = SamPredictor(sam)
 print(predictor)
-image = cv2.imread("images/inputs/truck_input.jpg")
+image = cv2.imread("images/inputs/truck_input.png")
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-#masks = get_masks_from_image(image, predictor)
+masks = get_masks_from_image(image, predictor)
 wide_mask = get_biggest_mask(masks, image, output_style="transparent_white", mask_style="wide")
+cv2.imwrite("images/masks/truck_wide_mask.png",wide_mask)
 plt.figure(figsize=(10,10))
 plt.imshow(wide_mask)#[:,:,:2])
 plt.show()
 
-tight_mask = get_biggest_mask(masks, image, output_style="mask", mask_style="tight")
+tight_mask = get_biggest_mask(masks, image, output_style="transparent_white", mask_style="tight")
+cv2.imwrite("images/masks/truck_tight_mask.png",tight_mask)
 plt.figure(figsize=(10,10))
 plt.imshow(tight_mask)
 plt.show()
@@ -151,12 +153,13 @@ plt.show()
 
 # ### All in one function to be called from other files
 
-# In[13]:
+# In[8]:
 
 
 def sam_generate_mask(image_path, mask_style="wide", output_style="transparent_white",save_as_file=False,mask_path=""):
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #predictor must be declared?
     masks = get_masks_from_image(image, predictor)
     mask = get_biggest_mask(masks, image, output_style=output_style, mask_style=mask_style)
     if save_as_file and mask_path!="":
@@ -171,7 +174,7 @@ def sam_generate_mask(image_path, mask_style="wide", output_style="transparent_w
 # from sam_generate_masks import sam_generate_mask
 # ```
 
-# In[14]:
+# In[9]:
 
 
 get_ipython().system('jupyter nbconvert --to script sam_generate_masks.ipynb')

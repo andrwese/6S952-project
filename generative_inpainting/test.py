@@ -23,16 +23,12 @@ if __name__ == "__main__":
     FLAGS = ng.Config('inpaint.yml')
     # ng.get_gpus(1)
     args, unknown = parser.parse_known_args()
-    height=512
-    width=680
 
     model = InpaintCAModel()
     image = cv2.imread(args.image)
     mask = cv2.imread(args.mask)
 
     #making sure images are not too big
-    image = cv2.resize(image, (width,height))
-    mask = cv2.resize(mask, (width,height))
     #mask = cv2.resize(mask, (image.shape[1],image.shape[0]))
 
     assert image.shape == mask.shape

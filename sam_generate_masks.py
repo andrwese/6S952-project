@@ -5,20 +5,21 @@
 # 
 # Before running, make sure you followed the readme. 
 
-# In[3]:
+# In[12]:
 
 
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import cv2
+from segment_anything import sam_model_registry,SamPredictor
 
 
 # # Utility functions
 
 # ### Functions for display purposes, showing masks, points or boxes
 
-# In[4]:
+# In[13]:
 
 
 def show_mask(mask, ax, random_color=False):
@@ -44,21 +45,18 @@ def show_box(box, ax):
 
 # ### Use sam predictor to get masks
 
-# In[5]:
+# In[14]:
 
 
-def get_masks_from_image(image, predictor):
-    # naïve: return mask from center point
+def get_masks_from_image(image, predictor, input_point):
     predictor.set_image(image)
-    cx, cy = image.shape[1]//2, image.shape[0]//2
-    input_point = np.array([[cx, cy]])
     input_label = np.array([1])
 
-    #Show image with point
-    # plt.figure(figsize=(10,10))
-    # plt.imshow(image)
-    # show_points(input_point, input_label, plt.gca())
-    # plt.show()
+    # Show image with point
+    plt.figure(figsize=(10,10))
+    plt.imshow(image)
+    show_points(input_point, input_label, plt.gca())
+    plt.show()
     
     masks, scores, logits = predictor.predict(
         point_coords=input_point,
@@ -67,14 +65,14 @@ def get_masks_from_image(image, predictor):
     )
 
     #Show masks
-    # for i, (mask, score) in enumerate(zip(masks, scores)):
-    #     plt.figure(figsize=(10,10))
-    #     plt.imshow(image)
-    #     show_mask(mask, plt.gca())
-    #     show_points(input_point, input_label, plt.gca())
-    #     plt.title(f"Mask {i+1}, Score: {score:.3f}", fontsize=18)
-    #     plt.axis('off')
-    #     plt.show()  
+    for i, (mask, score) in enumerate(zip(masks, scores)):
+        plt.figure(figsize=(10,10))
+        plt.imshow(image)
+        show_mask(mask, plt.gca())
+        show_points(input_point, input_label, plt.gca())
+        plt.title(f"Mask {i+1}, Score: {score:.3f}", fontsize=18)
+        plt.axis('off')
+        plt.show()  
 
     return masks
 
@@ -90,7 +88,7 @@ def get_masks_from_image(image, predictor):
 # out: 
 # numpy image of mask
 
-# In[6]:
+# In[15]:
 
 
 def get_biggest_mask(masks, image, output_style="mask", mask_style="tight"):
@@ -113,7 +111,8 @@ def get_biggest_mask(masks, image, output_style="mask", mask_style="tight"):
         case "white":
             h, w = mask.shape[-2:]
             white_image = np.ones_like(image) * 255
-            masked_image = np.where(mask.reshape(h, w, 1), white_image, image)
+            black_image = np.zeros_like(image)
+            masked_image = np.where(mask.reshape(h, w, 1), white_image, black_image)
             return masked_image
         
         case "transparent_white":
@@ -125,47 +124,52 @@ def get_biggest_mask(masks, image, output_style="mask", mask_style="tight"):
             return masked_image
 
 
-# ### Example usage
-
-# In[7]:
-
-
-from segment_anything import SamPredictor, sam_model_registry
-
-sam = sam_model_registry["default"](checkpoint="sam_vit_h_4b8939.pth")
-predictor = SamPredictor(sam)
-print(predictor)
-image = cv2.imread("images/inputs/truck_input.png")
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-masks = get_masks_from_image(image, predictor)
-wide_mask = get_biggest_mask(masks, image, output_style="transparent_white", mask_style="wide")
-cv2.imwrite("images/masks/truck_wide_mask.png",wide_mask)
-plt.figure(figsize=(10,10))
-plt.imshow(wide_mask)#[:,:,:2])
-plt.show()
-
-tight_mask = get_biggest_mask(masks, image, output_style="transparent_white", mask_style="tight")
-cv2.imwrite("images/masks/truck_tight_mask.png",tight_mask)
-plt.figure(figsize=(10,10))
-plt.imshow(tight_mask)
-plt.show()
-
-
 # ### All in one function to be called from other files
 
-# In[8]:
+# In[16]:
 
 
 def sam_generate_mask(image_path, mask_style="wide", output_style="transparent_white",save_as_file=False,mask_path=""):
+    sam = sam_model_registry["default"](checkpoint="sam_vit_h_4b8939.pth")
+    predictor = SamPredictor(sam)
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    #predictor must be declared?
-    masks = get_masks_from_image(image, predictor)
+    
+    input_point = np.array([[-1, -1]])
+    def click(event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            input_point = np.array([[x, y]])
+            param[0] = input_point
+            print(f"Point selected: {input_point}")
+        
+    cv2.imshow("image",image)
+    cv2.setMouseCallback("image", click, input_point)
+    while (input_point == np.array([[-1, -1]])).all():
+        cv2.waitKey(10)    
+    print("Point selected")
+    cv2.destroyAllWindows()
+    
+    masks = get_masks_from_image(image, predictor, input_point)
     mask = get_biggest_mask(masks, image, output_style=output_style, mask_style=mask_style)
     if save_as_file and mask_path!="":
         cv2.imwrite(mask_path,mask)
     return mask
 
+
+
+# In[17]:
+
+
+case_nr = "case08" # Specify this!
+mask_type = "tight" # and this
+output_style = "white"
+model = "sd"
+
+for i in range(8,9):
+    case_nr = "case"+f"{i:02d}"
+    input_image_path = "images/"+case_nr+"/"+case_nr+"_input.png"
+    mask_path = "images/"+case_nr+"/"+case_nr+"_"+mask_type+"_"+model+"_mask.png"
+    sam_generate_mask(input_image_path,mask_style=mask_type,output_style=output_style,save_as_file=True,mask_path=mask_path)
 
 
 # ### Turn jupyter notebook into script
@@ -174,7 +178,7 @@ def sam_generate_mask(image_path, mask_style="wide", output_style="transparent_w
 # from sam_generate_masks import sam_generate_mask
 # ```
 
-# In[9]:
+# In[18]:
 
 
 get_ipython().system('jupyter nbconvert --to script sam_generate_masks.ipynb')
